@@ -13,5 +13,10 @@
     "buildTarget" : {
       "visibility": "hidden"
                },
-     },
+    },
+    "files.associations": {
+      "cycling_speed_and_cadence_service_server.h": "c",
+      "server_common.h": "c",
+      "stdlib.h": "c"
+    },
 }

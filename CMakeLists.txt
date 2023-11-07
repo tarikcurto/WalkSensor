@@ -6,8 +6,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Initialise pico_sdk from installed location
-# (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "/home/tarikcurto/code/iotlab/pico-sdk")
+set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
 
 set(PICO_BOARD pico_w CACHE STRING "Board type")
 
@@ -24,8 +23,9 @@ project(WalkSensor C CXX ASM)
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
-
-add_executable(WalkSensor WalkSensor.c )
+add_executable(WalkSensor
+        WalkSensor.c
+        src/server_common.c)
 
 pico_set_program_name(WalkSensor "WalkSensor")
 pico_set_program_version(WalkSensor "0.1")
@@ -35,13 +35,21 @@ pico_enable_stdio_usb(WalkSensor 0)
 
 # Add the standard library to the build
 target_link_libraries(WalkSensor
-        pico_stdlib)
+        pico_stdlib
+        pico_btstack_ble
+        pico_btstack_cyw43
+        pico_cyw43_arch_none
+        hardware_adc)
 
-# Add the standard include files to the build
+# Add the standard include files to the build (header files)
 target_include_directories(WalkSensor PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/src
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
+
+# Add GATT
+pico_btstack_make_gatt_header(WalkSensor PRIVATE "${CMAKE_CURRENT_LIST_DIR}/src/temp_sensor.gatt")
 
 # Add any user requested libraries
 target_link_libraries(WalkSensor 
