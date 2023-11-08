@@ -2,10 +2,13 @@
 #include "btstack.h"
 #include "pico/cyw43_arch.h"
 #include "pico/btstack_cyw43.h"
-#include "hardware/adc.h"
 #include "pico/stdlib.h"
+#include "pico/binary_info.h"
+#include "hardware/adc.h"
+#include "hardware/i2c.h"
 
 #include "server_common.h"
+#include "mpu6050_i2c.h"
 
 #define HEARTBEAT_PERIOD_MS 1000
 
@@ -43,7 +46,19 @@ int main() {
         return -1;
     }
 
-    // Initialise adc for the temp sensor
+    // Initialize mpu6050
+    i2c_init(i2c_default, 400 * 1000);
+    gpio_set_function(PICO_DEFAULT_I2C_SDA_PIN, GPIO_FUNC_I2C); // Set the I2C pins to the I2C function
+    gpio_set_function(PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN); // Pull up the I2C pins
+    gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
+    
+    // Make the I2C pins available to picotool
+    bi_decl(bi_2pins_with_func(PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C));
+    
+    mpu6050_init();
+
+    // Initialize adc for the temp sensor
     adc_init();
     adc_select_input(ADC_CHANNEL_TEMPSENSOR);
     adc_set_temp_sensor_enabled(true);

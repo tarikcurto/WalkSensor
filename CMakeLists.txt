@@ -25,7 +25,8 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 add_executable(WalkSensor
         WalkSensor.c
-        src/server_common.c)
+        src/server_common.c
+        src/mpu6050_i2c.c)
 
 pico_set_program_name(WalkSensor "WalkSensor")
 pico_set_program_version(WalkSensor "0.1")
@@ -39,21 +40,16 @@ target_link_libraries(WalkSensor
         pico_btstack_ble
         pico_btstack_cyw43
         pico_cyw43_arch_none
-        hardware_adc)
+        hardware_adc
+        hardware_i2c)
 
 # Add the standard include files to the build (header files)
 target_include_directories(WalkSensor PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/src
-  ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
-)
+  ${CMAKE_CURRENT_LIST_DIR}/include)
 
 # Add GATT
 pico_btstack_make_gatt_header(WalkSensor PRIVATE "${CMAKE_CURRENT_LIST_DIR}/src/temp_sensor.gatt")
-
-# Add any user requested libraries
-target_link_libraries(WalkSensor 
-        )
 
 pico_add_extra_outputs(WalkSensor)
 
