@@ -32,7 +32,7 @@ pico_set_program_name(WalkSensor "WalkSensor")
 pico_set_program_version(WalkSensor "0.1")
 
 pico_enable_stdio_uart(WalkSensor 1)
-pico_enable_stdio_usb(WalkSensor 0)
+pico_enable_stdio_usb(WalkSensor 1)
 
 # Add the standard library to the build
 target_link_libraries(WalkSensor
