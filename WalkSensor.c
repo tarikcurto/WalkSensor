@@ -10,21 +10,21 @@
 #include "server_common.h"
 #include "mpu6050_i2c.h"
 
-#define HEARTBEAT_PERIOD_MS 1000
+#define HEARTBEAT_PERIOD_MS 100
 
 static btstack_timer_source_t heartbeat;
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 
 static void heartbeat_handler(struct btstack_timer_source *ts) {
-    static uint32_t counter = 0;
-    counter++;
+    printf("heartbeat_handler\n");
 
-    // Update the temp every 10s
-    if (counter % 10 == 0) {
-        poll_temp();
-        if (le_notification_enabled) {
-            att_server_request_can_send_now_event(con_handle);
-        }
+    // Updates
+    poll_temp();
+    poll_mpu6050();
+    if (le_notification_enabled) {
+        att_server_request_can_send_now_event(con_handle);
+        att_server_request_can_send_now_event(con_handle);
+        att_server_request_can_send_now_event(con_handle);
     }
 
     // Invert the led
@@ -47,11 +47,17 @@ int main() {
     }
 
     // Initialize mpu6050
+#if !defined(i2c_default) || !defined(PICO_DEFAULT_I2C_SDA_PIN) || !defined(PICO_DEFAULT_I2C_SCL_PIN)
+    #warning i2c/mpu6050_i2c example requires a board with I2C pins
+    puts("Default I2C pins were not defined");
+    return 0;
+#else
     i2c_init(i2c_default, 400 * 1000);
     gpio_set_function(PICO_DEFAULT_I2C_SDA_PIN, GPIO_FUNC_I2C); // Set the I2C pins to the I2C function
     gpio_set_function(PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN); // Pull up the I2C pins
     gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
+
     
     // Make the I2C pins available to picotool
     bi_decl(bi_2pins_with_func(PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C));
@@ -77,6 +83,7 @@ int main() {
 
     // set one-shot btstack timer
     heartbeat.process = &heartbeat_handler;
+    // TODO: is twice ?
     btstack_run_loop_set_timer(&heartbeat, HEARTBEAT_PERIOD_MS);
     btstack_run_loop_add_timer(&heartbeat);
 
@@ -92,7 +99,8 @@ int main() {
     // btstacK_run_loop_ methods to add work to the run loop.
     
     // this is a forever loop in place of where user code would go.
-    while(true) {      
+    while(true) {
         sleep_ms(1000);
     }
+#endif
 }
